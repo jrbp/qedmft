@@ -1,0 +1,14 @@
+[tool.poetry]
+packages = [{include = "qedmft", from = "src"}]
+name = "qedmft"
+version = "0.1.0"
+description = ""
+authors = ["John Bonini <jrbp@user.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
