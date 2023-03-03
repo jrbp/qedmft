@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
-from functools import singledispatch
+from functools import singledispatch, reduce
 from numpy import typing as npt
 from dataclasses import dataclass
 from typing import Sequence
@@ -62,7 +62,6 @@ class PhotonModes:
     def range_scale_lambda(self, scales):
         return [self.__class__(self.freqs, s * self.lambdas) for s in scales]
 
-#def get_coupled_hmat(mat, pht):
 def get_coupled_hmat(pht, mat):
     nmodes = mat.nmodes + pht.nmodes
     X = pht.lambdas @ mat.chi0 @ pht.lambdas.T.conj()
@@ -72,6 +71,13 @@ def get_coupled_hmat(pht, mat):
     OplusX = np.block([Z, O])
     elec_op = np.linalg.inv(np.eye(pht.nmodes) + X)
     return C + OplusX.T.conj() @ elec_op @ OplusX
+
+def get_effective_charges(pht, mat, ndim=3):
+    nmodes = mat.nmodes + pht.nmodes
+    Linv = np.linalg.inv(np.eye(ndim) + (1 / pht.nmodes) * reduce(lambda x, y: x+y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas)))
+    ion_charge = Linv @ mat.zmat.T
+    pht_charge = Linv @ (pht.lambdas * pht.freqs[:,None]).T
+    return np.block([ion_charge, pht_charge,]).T
 
 def hmat_to_freqs(hmat_q, masses, freq_only=True):
     dynmat = np.copy(hmat_q)
@@ -95,17 +101,22 @@ def hmat_to_freqs(hmat_q, masses, freq_only=True):
 def solve_all_qad(pht: PhotonModes, mat: AdiabaticMatter):
     masses = np.concatenate([mat.masses_flat, pht.masses_flat])
     hmat = get_coupled_hmat(pht, mat)
-    return hmat_to_freqs(hmat, masses, freq_only=False)
+    freqs, eigdispls = hmat_to_freqs(hmat, masses, freq_only=False)
+    eff_charges = get_effective_charges(pht, mat)
+    ir_vecs = eigdispls @ eff_charges
+    ir_norms = np.sqrt((ir_vecs**2).sum(-1))
+    return freqs, eigdispls, ir_vecs, ir_norms
 
 @solve_all_qad.register(list)
 def _(pht: Sequence[PhotonModes], mat: AdiabaticMatter):
-    freqs_all = []
-    displs_all = []
+    freqs_all, displs_all, ir_vecs_all, ir_norms_all = [], [], [], []
     for p in pht:
-        this_fs, this_ds = solve_all_qad(p, mat)
+        this_fs, this_ds, this_irv, this_irn = solve_all_qad(p, mat)
         freqs_all.append(this_fs)
         displs_all.append(this_ds)
-    return np.array(freqs_all), np.array(displs_all)
+        ir_vecs_all.append(this_irv)
+        ir_norms_all.append(this_irn)
+    return np.array(freqs_all), np.array(displs_all), np.array(ir_vecs_all), np.array(ir_norms_all)
 
 def pht_char(displs, nphtmodes):
     pht_part_all = displs[:,:,-nphtmodes:]
