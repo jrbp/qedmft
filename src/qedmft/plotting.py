@@ -55,13 +55,12 @@ def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1):
     return plt, fig, axs
 
 
-def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01):
+def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01, nomegas=10000):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
-    print(lambdas.shape)
     spectra_funcs = (
         get_spectra_func(freq, ir, broadening) for freq, ir in zip(freqs, peaks)
     )
-    freqs_range = np.linspace(0, freqs.max() * 1.1, 500)
+    freqs_range = np.linspace(0, freqs.max() * 1.1, nomegas)
     irmat = np.zeros((len(freqs_range), len(lambdas)))
     for i, sf in enumerate(spectra_funcs):
         irmat[:, i] = sf(freqs_range)
