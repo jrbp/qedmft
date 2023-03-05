@@ -31,7 +31,7 @@ class AdiabaticMatter:
 
     @property
     def nmodes(self, ndim=3) -> int:
-        return ndim * len(self.species)
+        return ndim * self.natoms
 
     @property
     def masses_flat(self, ndim=3) -> npt.NDArray[float]:
