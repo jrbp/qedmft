@@ -62,6 +62,7 @@ class PhotonModes:
     def range_scale_lambda(self, scales):
         return [self.__class__(self.freqs, s * self.lambdas) for s in scales]
 
+
 def get_coupled_hmat(pht, mat):
     nmodes = mat.nmodes + pht.nmodes
     X = pht.lambdas @ mat.chi0 @ pht.lambdas.T.conj()
@@ -72,11 +73,21 @@ def get_coupled_hmat(pht, mat):
     elec_op = np.linalg.inv(np.eye(pht.nmodes) + X)
     return C + OplusX.T.conj() @ elec_op @ OplusX
 
+
 def get_effective_charges(pht, mat, ndim=3):
-    Linv = np.linalg.inv(np.eye(ndim) + reduce(lambda x, y: x+y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas)))
+    Linv = np.linalg.inv(
+        np.eye(ndim)
+        + reduce(lambda x, y: x + y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas))
+    )
     ion_charge = Linv @ mat.chi0 @ mat.zmat.T
-    pht_charge = Linv @ mat.chi0 @(pht.lambdas * pht.freqs[:,None]).T
-    return np.block([ion_charge, pht_charge,]).T
+    pht_charge = Linv @ mat.chi0 @ (pht.lambdas * pht.freqs[:, None]).T
+    return np.block(
+        [
+            ion_charge,
+            pht_charge,
+        ]
+    ).T
+
 
 def hmat_to_freqs(hmat_q, masses, freq_only=True):
     dynmat = np.copy(hmat_q)
@@ -90,11 +101,13 @@ def hmat_to_freqs(hmat_q, masses, freq_only=True):
     eigdispls = masses ** (-0.5) * eigvecs.T
     return freqs, eigdispls
 
+
 # def solve_gen_eig(C, M, G=None):
 #    """for (omega^2 M + omega G + C)x = 0 find set of omega,x solutions"""
 #    if G is not None or np.linalg.det(M) < 1e-8:
 #        raise NotImplementedError("still need to implement the G solver and massless dof (have it from other project though)")
 #    # simple version
+
 
 @singledispatch
 def solve_all_qad(pht: PhotonModes, mat: AdiabaticMatter):
@@ -106,6 +119,7 @@ def solve_all_qad(pht: PhotonModes, mat: AdiabaticMatter):
     ir_norms = np.sqrt((ir_vecs**2).sum(-1))
     return freqs, eigdispls, ir_vecs, ir_norms
 
+
 @solve_all_qad.register(list)
 def _(pht: Sequence[PhotonModes], mat: AdiabaticMatter):
     freqs_all, displs_all, ir_vecs_all, ir_norms_all = [], [], [], []
@@ -115,8 +129,14 @@ def _(pht: Sequence[PhotonModes], mat: AdiabaticMatter):
         displs_all.append(this_ds)
         ir_vecs_all.append(this_irv)
         ir_norms_all.append(this_irn)
-    return np.array(freqs_all), np.array(displs_all), np.array(ir_vecs_all), np.array(ir_norms_all)
+    return (
+        np.array(freqs_all),
+        np.array(displs_all),
+        np.array(ir_vecs_all),
+        np.array(ir_norms_all),
+    )
+
 
 def pht_char(displs, nphtmodes):
-    pht_part_all = displs[:,:,-nphtmodes:]
+    pht_part_all = displs[:, :, -nphtmodes:]
     return np.sqrt((pht_part_all**2).sum(-1))
