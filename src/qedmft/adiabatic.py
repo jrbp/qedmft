@@ -158,4 +158,4 @@ def pht_char(displs, phts, same_npht=True):
         pht_part_all = displs[:, :, -phts[0].nmodes:]
         return np.sqrt((pht_part_all**2).sum(-1))
     else:
-        return [np.sqrt((ds[...,-p.nmodes:]**2).sum(-1)) for ds, p in zip(displs, phts)]
+        return np.array([np.sqrt((ds[...,-p.nmodes:]**2).sum(-1)) for ds, p in zip(displs, phts)])
