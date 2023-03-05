@@ -73,10 +73,9 @@ def get_coupled_hmat(pht, mat):
     return C + OplusX.T.conj() @ elec_op @ OplusX
 
 def get_effective_charges(pht, mat, ndim=3):
-    nmodes = mat.nmodes + pht.nmodes
-    Linv = np.linalg.inv(np.eye(ndim) + (1 / pht.nmodes) * reduce(lambda x, y: x+y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas)))
-    ion_charge = Linv @ mat.zmat.T
-    pht_charge = Linv @ (pht.lambdas * pht.freqs[:,None]).T
+    Linv = np.linalg.inv(np.eye(ndim) + reduce(lambda x, y: x+y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas)))
+    ion_charge = Linv @ mat.chi0 @ mat.zmat.T
+    pht_charge = Linv @ mat.chi0 @(pht.lambdas * pht.freqs[:,None]).T
     return np.block([ion_charge, pht_charge,]).T
 
 def hmat_to_freqs(hmat_q, masses, freq_only=True):
