@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+from json import JSONEncoder
 from py4vasp import Calculation
 
 from .units import *
@@ -28,3 +29,11 @@ def adiabatic_dat_from_p4vsp(path):
     res["eps_3D"] = vcalc.dielectric_tensor.to_dict()["clamped_ion"]
     res["chi0"] = vol_au * (vcalc.dielectric_tensor.to_dict()["clamped_ion"] - np.eye(3)) / (4 * np.pi**2)
     return AdiabaticMatter(**res)
+
+
+class NumpyArrayEncoder(JSONEncoder):
+    # will switch to hdf5 for freq dependence
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)

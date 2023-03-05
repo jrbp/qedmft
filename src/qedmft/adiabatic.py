@@ -41,6 +41,22 @@ class AdiabaticMatter:
     def zmat(self, ndim=3):
         return self.zs.reshape((-1, ndim))
 
+    def save_json(self, path):
+        from dataclasses import asdict
+        import json
+        from .io import NumpyArrayEncoder
+        with open(path, 'w') as f:
+            f.write(json.dumps(asdict(self), cls=NumpyArrayEncoder, indent=2))
+
+    @classmethod
+    def from_json(cls, path):
+        import json
+        with open(path) as f:
+            d = json.load(f)
+        for k, v in d.items():
+            if not k in ["calc_dir", "species"]:
+                d[k] = np.array(v)
+        return cls(**d)
 
 @dataclass
 class PhotonModes:
