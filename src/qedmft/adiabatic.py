@@ -153,6 +153,9 @@ def _(pht: Sequence[PhotonModes], mat: AdiabaticMatter):
     )
 
 
-def pht_char(displs, nphtmodes):
-    pht_part_all = displs[:, :, -nphtmodes:]
-    return np.sqrt((pht_part_all**2).sum(-1))
+def pht_char(displs, phts, same_npht=True):
+    if same_npht: # can vectorize
+        pht_part_all = displs[:, :, -phts[0].nmodes:]
+        return np.sqrt((pht_part_all**2).sum(-1))
+    else:
+        return [np.sqrt((ds[...,-p.nmodes:]**2).sum(-1)) for ds, p in zip(displs, phts)]
