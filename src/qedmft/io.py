@@ -6,7 +6,7 @@ from py4vasp import Calculation
 from .units import *
 from .adiabatic import AdiabaticMatter
 
-def adiabatic_dat_from_p4vsp(path):
+def adiabatic_dat_from_p4vsp(path, enforce_asr=False):
     """
     TODO: should switch to just parsing the xml/hdf5 myself
           or using ase or pymatgen
@@ -24,11 +24,18 @@ def adiabatic_dat_from_p4vsp(path):
     res["coords"] = ase_struct.get_scaled_positions()
     res["masses"] = ase_struct.get_masses() * MASS_AMU_FACT
     # is vasp sign convention for forces or second energy derivs?
-    res["cmat"] = -vcalc.force_constant.to_dict()["force_constants"] * (ANG_PER_BOHR**2 / EV_PER_HARTREE)
+    cmat_raw = -vcalc.force_constant.to_dict()["force_constants"] * (ANG_PER_BOHR**2 / EV_PER_HARTREE)
+    if enforce_asr:
+        res["cmat"] = enforce_asr(cmat_raw)
+    else:
+        res["cmat"] = cmat_raw
     res["zs"] = vcalc.born_effective_charge.to_dict()["charge_tensors"]
     res["eps_3D"] = vcalc.dielectric_tensor.to_dict()["clamped_ion"]
     res["chi0"] = vol_au * (vcalc.dielectric_tensor.to_dict()["clamped_ion"] - np.eye(3)) / (4 * np.pi**2)
     return AdiabaticMatter(**res)
+
+def enforce_asr(cmat):
+    return cmat # no implemented yet
 
 
 class NumpyArrayEncoder(JSONEncoder):
