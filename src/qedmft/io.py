@@ -31,7 +31,7 @@ def adiabatic_dat_from_p4vsp(path, enforce_asr=False):
         res["cmat"] = cmat_raw
     res["zs"] = vcalc.born_effective_charge.to_dict()["charge_tensors"]
     res["eps_3D"] = vcalc.dielectric_tensor.to_dict()["clamped_ion"]
-    res["chi0"] = vol_au * (vcalc.dielectric_tensor.to_dict()["clamped_ion"] - np.eye(3)) / (4 * np.pi**2)
+    res["chi0"] = vol_au * (vcalc.dielectric_tensor.to_dict()["clamped_ion"] - np.eye(3)) / (4 * np.pi)
     return AdiabaticMatter(**res)
 
 def enforce_asr(cmat):

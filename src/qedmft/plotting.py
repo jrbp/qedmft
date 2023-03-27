@@ -2,18 +2,22 @@
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import LineCollection
+from matplotlib.tri import Triangulation
 import numpy as np
 from .units import EV_PER_HARTREE
 
 
-def plot_f_vs_lambdas_withchar(freqs, chars, lambdas):
+def plot_f_vs_lambdas_withchar(freqs, chars, lambdas, ax=None):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
     base_cmap = mpl.colormaps["inferno"]
     new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
         "c_partial", base_cmap(np.linspace(0, 0.65, base_cmap.N))
     )
     a = 5
-    fig, ax = plt.subplots(figsize=(1.618 * a, a))
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(1.618 * a, a))
+    else:
+        fig = ax.get_figure()
     norm = plt.Normalize(chars.min(), chars.max())
     for fs, cs in zip(freqs.T, chars.T):
         points = np.array([lambdas, fs]).T.reshape(-1, 1, 2)
@@ -29,14 +33,17 @@ def plot_f_vs_lambdas_withchar(freqs, chars, lambdas):
     return plt, fig, ax
 
 
-def get_lorrenztian(freq, peak, sigma=0.01):
-    def l(x):
-        return peak * (sigma / 2 * np.pi) / ((x - freq) ** 2 + (sigma / 2) ** 2)
-
+def get_lorrenztian(freq, peak, sigma=0.01, old=True, cutoff=None):
+    if old:
+        def l(x):
+            return peak * (sigma / 2 * np.pi) / ((x - freq) ** 2 + (sigma / 2) ** 2)
+    else:
+        def l(x):
+            return peak * (np.pi * sigma * (1 + ((x-freq)/sigma)**2))**-1
     return l
 
 
-def get_spectra_func(f, c, broadening=0.1):
+def get_spectra_func(f, c, broadening=0.1, old=True):
     broadened_funcs = (get_lorrenztian(freq, ir, broadening) for freq, ir in zip(f, c))
     return lambda x: sum((sm(x) for sm in broadened_funcs))
 
@@ -55,26 +62,32 @@ def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1):
     return plt, fig, axs
 
 
-def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01, nomegas=10000):
+def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01, freqs_range=None, ax=None):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
     spectra_funcs = (
         get_spectra_func(freq, ir, broadening) for freq, ir in zip(freqs, peaks)
     )
-    freqs_range = np.linspace(0, freqs.max() * 1.1, nomegas)
+    if freqs_range is None:
+        freqs_range = np.linspace(0, freqs.max() * 1.1, 1000)
     irmat = np.zeros((len(freqs_range), len(lambdas)))
     for i, sf in enumerate(spectra_funcs):
         irmat[:, i] = sf(freqs_range)
 
-    fig, ax = plt.subplots(figsize=(1.618 * 5, 5))
-    ax.imshow(
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(1.618 * 5, 5))
+    else:
+        fig = ax.get_figure()
+    im = ax.imshow(
         irmat,
         extent=[0, lambdas.max(), 0, freqs_range.max()],
         origin="lower",
         vmin=0,
         vmax=np.max(irmat),
-        aspect=lambdas.max() / freqs_range.max(),
+        #aspect=lambdas.max() / freqs_range.max(),
+        aspect="auto",
         # interpolation="none",
     )
     ax.set_xlabel(r"$\lambda$")
     ax.set_ylabel(r"$\hbar \omega$ (meV / u. c.)")
+    fig.colorbar(im, ax=ax, label="IR intensity")
     return plt, fig, ax
