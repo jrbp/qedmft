@@ -2,7 +2,6 @@
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import LineCollection
-from matplotlib.tri import Triangulation
 import numpy as np
 from .units import EV_PER_HARTREE
 
