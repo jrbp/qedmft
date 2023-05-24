@@ -48,12 +48,13 @@ def get_spectra_func(f, c, broadening=0.1, old=True):
     return lambda x: sum((sm(x) for sm in broadened_funcs))
 
 
-def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1):
+def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1, freqs_range=None):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
     if len(lambdas) > 10:
         raise ValueError("I promise you don't want that many subplots")
-    fig, axs = plt.subplots(nrows=len(lambdas), sharex=True)
-    freqs_range = np.linspace(0, freqs.max() * 1.3, 500)
+    fig, axs = plt.subplots(nrows=len(lambdas), sharex=True, sharey=True)
+    if freqs_range is None:
+        freqs_range = np.linspace(0, freqs.max() * 1.3, 500)
     for a, fs, ps, l in zip(axs[::-1], freqs, peaks, lambdas):
         spectra = get_spectra_func(fs, ps, broadening)
         a.plot(freqs_range, spectra(freqs_range))
