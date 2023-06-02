@@ -105,7 +105,7 @@ def get_effective_charges(pht, mat, ndim=3):
     ).T
 
 
-def hmat_to_freqs(hmat_q, masses, freq_only=True):
+def hmat_to_freqs(hmat_q, masses, freq_only=True, dynvecs=False):
     dynmat = np.copy(hmat_q)
     for i, m in enumerate(masses):
         dynmat[:, i] *= m**-0.5
@@ -114,6 +114,8 @@ def hmat_to_freqs(hmat_q, masses, freq_only=True):
     freqs = np.sign(eigvals) * np.abs(eigvals) ** 0.5
     if freq_only:
         return freqs
+    if dynvecs: # just return dynmat eigvecs (no mass norm)
+        return freqs, eigvecs
     eigdispls = masses ** (-0.5) * eigvecs.T
     return freqs, eigdispls
 
