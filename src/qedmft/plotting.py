@@ -28,7 +28,8 @@ def plot_f_vs_lambdas_withchar(freqs, chars, lambdas, ax=None):
     ax.set_xlim((lambdas[0], lambdas[-1]))
     ax.set_xlabel(r"$\lambda$")
     ax.set_ylabel(r"$\hbar\omega$ (meV)")
-    fig.colorbar(mpl.cm.ScalarMappable(cmap=new_cmap), ax=ax, label="photon character")
+    cbar = fig.colorbar(mpl.cm.ScalarMappable(cmap=new_cmap), ax=ax, label="photon character")
+    cbar.set_ticks([0, 1])
     return plt, fig, ax
 
 
@@ -82,12 +83,13 @@ def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01, freqs_range=None, ax=None
         extent=[0, lambdas.max(), 0, freqs_range.max()],
         origin="lower",
         vmin=0,
-        vmax=np.max(irmat),
+        vmax=np.max(irmat)/3,
         #aspect=lambdas.max() / freqs_range.max(),
         aspect="auto",
         # interpolation="none",
     )
     ax.set_xlabel(r"$\lambda$")
     ax.set_ylabel(r"$\hbar \omega$ (meV / u. c.)")
-    fig.colorbar(im, ax=ax, label="IR intensity")
+    cbar = fig.colorbar(im, ax=ax, label="IR intensity")
+    cbar.set_ticks([])
     return plt, fig, ax
