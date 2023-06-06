@@ -95,7 +95,7 @@ def get_effective_charges(pht, mat, ndim=3):
         np.eye(ndim)
         + reduce(lambda x, y: x + y, (np.outer(mat.chi0 @ l, l) for l in pht.lambdas))
     )
-    ion_charge = Linv @ mat.chi0 @ mat.zmat.T
+    ion_charge = Linv @ mat.zmat.T
     pht_charge = Linv @ mat.chi0 @ (pht.lambdas * pht.freqs[:, None]).T
     return np.block(
         [
