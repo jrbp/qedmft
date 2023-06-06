@@ -54,7 +54,7 @@ def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1, freqs_range=None):
     fig, axs = plt.subplots(nrows=len(lambdas), sharex=True, sharey=True)
     if freqs_range is None:
         freqs_range = np.linspace(0, freqs.max() * 1.3, 500)
-    for a, fs, ps, l in zip(axs[::-1], freqs, peaks, lambdas):
+    for a, fs, ps, l in zip(axs[::-1], freqs, np.abs(peaks), lambdas):
         spectra = get_spectra_func(fs, ps, broadening)
         a.plot(freqs_range, spectra(freqs_range))
         a.annotate(f"$\\lambda$={l:.3f}", (0.01, 0.8), xycoords="axes fraction")
@@ -65,7 +65,7 @@ def plot_ir_basic(freqs, peaks, lambdas, broadening=0.1, freqs_range=None):
 def plot_ir_2D(freqs, peaks, lambdas, broadening=0.01, freqs_range=None, ax=None):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
     spectra_funcs = (
-        get_spectra_func(freq, ir, broadening) for freq, ir in zip(freqs, peaks)
+        get_spectra_func(freq, ir, broadening) for freq, ir in zip(freqs, np.abs(peaks))
     )
     if freqs_range is None:
         freqs_range = np.linspace(0, freqs.max() * 1.1, 1000)
