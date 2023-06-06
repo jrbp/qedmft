@@ -85,7 +85,7 @@ def get_coupled_hmat(pht, mat):
     Z = pht.lambdas @ mat.zmat.T
     O = pht.omat
     C = np.block([[mat.cmat, np.zeros_like(Z.T)], [np.zeros_like(Z), np.zeros_like(O)]])
-    OplusX = np.block([Z, O])
+    OplusX = np.block([-Z, O])
     elec_op = np.linalg.inv(np.eye(pht.nmodes) + X)
     return C + OplusX.T.conj() @ elec_op @ OplusX
 
