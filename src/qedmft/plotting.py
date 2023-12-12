@@ -6,6 +6,42 @@ import numpy as np
 from .units import EV_PER_HARTREE
 
 
+def plot_f_vs_lambdas_colorchar_widthir(freqs, irns, chars, lambdas,
+                                        ax=None, retcmap=True, make_colorbar=False,
+                                        maxwidth=15):
+    freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
+    maxir = np.max(irns)
+    base_cmap = mpl.colormaps["inferno"]
+    new_cmap = mpl.colors.LinearSegmentedColormap.from_list(
+        "c_partial", base_cmap(np.linspace(0.15, 0.85, base_cmap.N))
+    )
+    a = 5
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(1.618 * a, a))
+    else:
+        fig = ax.get_figure()
+    norm = plt.Normalize(chars.min(), chars.max())
+    for fs, cs, irs in zip(freqs.T, chars.T, irns.T):
+        points = np.array([lambdas, fs]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        widths = (np.array(irs) / maxir) * maxwidth
+        lc = LineCollection(segments, cmap=new_cmap, norm=norm, linewidths=widths)
+        lc.set_array(cs[:-1])
+        ax.add_collection(lc)
+    for fs, cs, irs in zip(freqs.T, chars.T, irns.T):
+        ax.plot(lambdas, fs, "--", color="white", linewidth=1.2)
+    ax.set_ylim((np.min(freqs) - (pad := np.max(freqs) * 1e-2), np.max(freqs) + pad))
+    ax.set_xlim((lambdas[0], lambdas[-1]))
+    ax.set_xlabel(r"$\lambda$")
+    ax.set_ylabel(r"$\hbar\omega$ (meV)")
+    if make_colorbar:
+        cbar = fig.colorbar(mpl.cm.ScalarMappable(cmap=new_cmap), ax=ax, label="photon character")
+        cbar.set_ticks([0, 1])
+    if retcmap:
+        return plt, fig, ax, new_cmap
+    else:
+        return plt, fig, ax
+
 def plot_f_vs_lambdas_withchar(freqs, chars, lambdas, ax=None):
     freqs = freqs * EV_PER_HARTREE * 1e3  # to meV
     base_cmap = mpl.colormaps["inferno"]
