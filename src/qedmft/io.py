@@ -4,38 +4,37 @@ from warnings import warn
 import numpy as np
 import numpy.typing as npt
 from json import JSONEncoder
-from py4vasp import Calculation
+from h5py import File
 
 from .units import *
 from .adiabatic import AdiabaticMatter
+from .data import atomic_masses, atomic_numbers
 
-def adiabatic_dat_from_p4vsp(path, enforce_asr=False):
-    """
-    TODO: should switch to just parsing the xml/hdf5 myself
-          or using ase or pymatgen
-          as py4vasp has annoying dependencies and wants to
-          always open jupyter notebooks
+def adiabatic_dat_from_vasph5(path, enforce_asr=False):
+    with File(path, 'r') as f:
+        poscar = f['input']['poscar']
+        response = f['results']['linear_response']
+        # HACK: assuming direct coords, even this check is a pretty ugly type conversion
+        assert abs(float(np.array(poscar['scale'])) - 1.0) < 1e-8
+        assert bool(np.array(poscar['direct_coordinates']))
 
-    """
-    vcalc = Calculation.from_path(path)
-    res = {}
-    ase_struct = vcalc.structure.to_ase()
-    vol_au = ase_struct.cell.volume / ANG_PER_BOHR**3
-    res["calc_dir"] = path
-    res["species"] = ase_struct.get_chemical_symbols()
-    res["cell"] = ase_struct.cell / ANG_PER_BOHR
-    res["coords"] = ase_struct.get_scaled_positions()
-    res["masses"] = ase_struct.get_masses() * MASS_AMU_FACT
-    # is vasp sign convention for forces or second energy derivs?
-    cmat_raw = -vcalc.force_constant.to_dict()["force_constants"] * (ANG_PER_BOHR**2 / EV_PER_HARTREE)
-    if enforce_asr:
-        res["cmat"] = apply_asr_correction(cmat_raw)
-    else:
-        res["cmat"] = cmat_raw
-    res["zs"] = vcalc.born_effective_charge.to_dict()["charge_tensors"]
-    res["eps_3D"] = vcalc.dielectric_tensor.to_dict()["clamped_ion"]
-    res["chi0"] = vol_au * (vcalc.dielectric_tensor.to_dict()["clamped_ion"] - np.eye(3)) / (4 * np.pi)
-    return AdiabaticMatter(**res)
+        cmat = -np.array(response['force_constants']) * (ANG_PER_BOHR**2 / EV_PER_HARTREE)
+        eps3d = np.array(response['electron_dielectric_tensor'])
+        cell = np.array(poscar['lattice_vectors']) / ANG_PER_BOHR
+        vol = np.dot(np.cross(cell[0], cell[1]), cell[2])
+        species = list(map(lambda s: s.decode(), poscar['ion_types']))
+
+        res = AdiabaticMatter(calc_dir = path,
+                              species = species,
+                              cell = cell,
+                              coords = np.array(poscar['position_ions']),
+                              #masses = MASS_AMU_FACT * np.array(list(map(lambda s: atomic_masses[atomic_numbers[s]], species))),
+                              masses = MASS_AMU_FACT * np.array([atomic_masses[atomic_numbers[s]] for s in species]),
+                              cmat = apply_asr_correction(cmat) if enforce_asr else cmat,
+                              zs = np.array(response['born_charges']),
+                              eps_3D = eps3d,
+                              chi0 = vol * (eps3d - np.eye(3)) / (4 * np.pi),)
+    return res
 
 def apply_asr_correction(cmat:npt.NDArray[Union[np.float64, np.complex128]], ndim=3):
     warn("asr correction needs testing")

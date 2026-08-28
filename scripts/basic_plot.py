@@ -6,11 +6,11 @@ from qedmft import adiabatic as qad
 from qedmft.units import *
 from qedmft.plotting import plot_f_vs_lambdas_withchar
 
-# To use directory containing vaspout.h5 provided as cli arg:
+# To use vaspout.h5 provided as cli arg:
 # import sys
-# from qedmft.io import adiabatic_dat_from_p4vsp
-# dat = adiabatic_dat_from_p4vsp(sys.argv[1])
-## dat.save_json("./bn_resp_example.json") # saves needed data to json file
+# from qedmft.io import adiabatic_dat_from_vasph5
+# dat = adiabatic_dat_from_vasph5(sys.argv[1])
+# dat.save_json("./bn_resp_example.json") # saves needed data to json file
 
 # load the json example data
 fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bn_resp_example.json")
@@ -34,5 +34,5 @@ chars = qad.pht_char(displs, phts)
 plt, fig, ax = plot_f_vs_lambdas_withchar(freqs, chars, llambdas)
 ax.annotate("BN", (0.01, 0.95), xycoords="axes fraction")
 ax.set_ylim((0, 250))
-## fig.savefig("./bn_example.png")
+# fig.savefig("./bn_example.png")
 plt.show()

@@ -1,24 +1,13 @@
-[tool.poetry]
-packages = [{include = "qedmft", from = "src"}]
+[project]
 name = "qedmft"
-version = "0.1.0"
-description = ""
+packages = [{include = "qedmft", from = "src"}]
+version = "0.1.1"
+description = "cavity polaritons from electric field response"
 authors = ["John Bonini <jrbp@user.noreply.github.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-
-numpy = "^1.21.6"
-matplotlib = "^3.5.1"
-
-ipykernel = {version = "^6.9.1", optional = true}
-py4vasp = {git = "https://github.com/jrbp/p4vasp.git", branch = "no_mdtraj", optional = false}
-
-[tool.poetry.extras]
-jup = ["ipykernel"]
-vaspio = ["py4vasp"]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.10"
+dependencies = [
+'numpy = "1.21.6"',
+'matplotlib = "^3.5.1"',
+'ipykernel = ^6.9.1',
+'h5py = "3.10.0"'
+]
