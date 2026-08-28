@@ -7,13 +7,13 @@ authors = ["John Bonini <jrbp@user.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.10,<3.13"
 
 numpy = "^1.21.6"
 matplotlib = "^3.5.1"
 
 ipykernel = {version = "^6.9.1", optional = true}
-py4vasp = {git = "https://github.com/jrbp/p4vasp.git", branch = "no_mdtraj", optional = true}
+py4vasp = {git = "https://github.com/jrbp/p4vasp.git", branch = "no_mdtraj", optional = false}
 
 [tool.poetry.extras]
 jup = ["ipykernel"]
