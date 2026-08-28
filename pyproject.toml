@@ -1,0 +1,11 @@
+[project]
+name = "qedmft"
+version = "0.1.2"
+description = "cavity polaritons from electric field response"
+authors = [{name = "John Bonini", email="jrbp@user.noreply.github.com"}]
+requires-python = ">=3.10"
+dependencies = [
+"numpy>=1.21",
+"matplotlib>=3.5",
+"h5py>=3.10"
+]
