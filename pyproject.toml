@@ -1,13 +1,11 @@
 [project]
 name = "qedmft"
-packages = [{include = "qedmft", from = "src"}]
-version = "0.1.1"
+version = "0.1.2"
 description = "cavity polaritons from electric field response"
-authors = ["John Bonini <jrbp@user.noreply.github.com>"]
+authors = [{name = "John Bonini", email="jrbp@user.noreply.github.com"}]
 requires-python = ">=3.10"
 dependencies = [
-'numpy = "1.21.6"',
-'matplotlib = "^3.5.1"',
-'ipykernel = ^6.9.1',
-'h5py = "3.10.0"'
+"numpy>=1.21",
+"matplotlib>=3.5",
+"h5py>=3.10"
 ]

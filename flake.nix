@@ -52,10 +52,12 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python3;
-      in {
-        default = python.pkgs.buildPythonPackage (
+      in rec {
+        default = qedmft;
+        qedmft = python.pkgs.buildPythonPackage (
           project.renderers.buildPythonPackage {inherit python;}
         );
+        pythonWithQedmft = pkgs.python3.withPackages (_: [self.packages.${system}.qedmft]);
       }
     );
   };
